@@ -9,14 +9,13 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
     <script src="https://kit.fontawesome.com/662a1bdfcd.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <link rel="stylesheet" href="./assets/css/style.css">
 </head>
 
 <body>
     <div class="main">
-
-
         <div class="card">
             <div class="h1">Conversor de Monedas Nacional</div>
                 <div class="form-container">
@@ -24,8 +23,8 @@
                     <input type="text" id="clp" name="clp" placeholder="Ingrese el monto en CLP">
                   
                   
-                    <label class="h3" for="fx">Moneda a Convertir</label>
-                    <select id="fx" name="fx" placeholder="Seleccione moneda">
+                    <label class="h2" for="moneda">Moneda a Convertir</label>
+                    <select id="moneda" name="moneda" placeholder="Seleccione moneda">
                     </select>
                     <button class="btn-search" id="btn-search">Buscar</button>
 
@@ -33,26 +32,28 @@
 
                 <div class="result" id="result">...</div>
 
-                <h1>Últimos Sismos en Chile</h1>
                 <div class="grafica">
+                <span class="h2" id="titulo-grafica">Historial últimos 10 días</span>
                 <canvas id="myChart"></canvas>
                 </div>
-
 
     </div>
 
     <script>
         const apiUrl = "https://mindicador.cl/api";
         let tasas = {};
+        let chartInstance = null;
 
+        // Get available currencies from the API
         async function getMonedas() {
             try {
-                const response = await fetch(apiUrl);
+                const res = await fetch(apiUrl);
+                if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
                 const data = await res.json();
                 const monedasValidas = ["dolar", "euro", "uf", "utm", "bitcoin"];
-                const select = document.getElementById("fx");
+                const select = document.getElementById("moneda");
                 
-                monedasExtranjeras.forEach(moneda => {
+                monedasValidas.forEach(moneda => {
                     if (data[moneda]) {
                         tasas[moneda] = data[moneda].valor;
                         let option = document.createElement("option");
@@ -63,12 +64,14 @@
                 });
             } catch (error) {
                 console.error("Error al obtener los datos:", error);
+                document.getElementById("result").textContent = "❌ Error al cargar los datos. Inténtalo de nuevo más tarde.";
             }
         }
 
+   
         function convertir() {
             const monto = parseFloat(document.getElementById("clp").value);
-            const monedaSeleccionada = document.getElementById("fx").value;
+            const monedaSeleccionada = document.getElementById("moneda").value;
             const tasa = tasas[monedaSeleccionada];
 
             if (!monto || monto <= 0) {
@@ -77,14 +80,82 @@
             }
 
             const resultado = (monto / tasa).toFixed(2);
-            document.getElementById("result").textContent = 
-                `Resultado: ${resultado} ${monedaSeleccionada}`;
+            document.getElementById("result").textContent = `Resultado: ${resultado} ${monedaSeleccionada.toUpperCase()}`;
+
+       
+            renderGrafica(monedaSeleccionada);
         }
 
         document.getElementById("btn-search").addEventListener("click", convertir);
+
         window.onload = getMonedas;
-        
-    </script>
+
+        async function getMonedasGraf(moneda) {
+    try {
+        const res = await fetch(`${apiUrl}/${moneda}`);
+        if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+        const data = await res.json();
+        return data.serie.slice(0, 10).reverse(); 
+    } catch (error) {
+        console.error("Error al obtener los datos históricos:", error);
+        return [];
+    }
+}
+     async function renderGrafica(moneda) {
+    const monedas = await getMonedasGraf(moneda);
+
+    if (monedas.length === 0) {
+        document.querySelector(".grafica").style.display = "none"; // Hide if no data
+        return;
+    }
+    document.querySelector(".grafica").style.display = "block"; // Show chart container
+    const titleElement = document.getElementById("titulo-grafica");
+    titleElement.style.display = "block";
+    titleElement.textContent = `Historial últimos 10 días de ${moneda.toUpperCase()}`;
+
+
+    const labels = monedas.map(entry => new Date(entry.fecha).toLocaleDateString("es-CL", { day: '2-digit', month: '2-digit' }));
+    const valores = monedas.map(entry => entry.valor);
+
+    const ctx = document.getElementById("myChart").getContext("2d");
+
+    if (chartInstance) {
+        chartInstance.destroy();
+    }
+
+    chartInstance = new Chart(ctx, {
+        type: "line",
+        data: {
+            labels: labels,
+            datasets: [{
+                label: `Valor de ${moneda.toUpperCase()} en los últimos 10 días`,
+                backgroundColor: "rgb(135, 181, 181)",
+                borderColor: "rgb(135, 181, 181)",
+                data: valores,
+                fill: false
+            }]
+        },
+        options: {
+            plugins: {
+                legend: { display: false } // Hide legend
+            },
+            scales: {
+                x: {
+                    title: { display: true, text: "Fecha", color: "white" }, // Custom axis title color
+                    ticks: { color: "white" }, // Custom tick color
+                    grid: { color: "rgba(255, 255, 255, 0.2)" } // Custom grid line color
+                },
+                y: {
+                    title: { display: true, text: "Valor", color: "white" }, // Custom axis title color
+                    ticks: { color: "white" }, // Custom tick color
+                    grid: { color: "rgba(255, 255, 255, 0.2)" } // Custom grid line color
+                }
+            }
+        }
+    });
+}
+</script>
+
 
 </body>
 </html>
