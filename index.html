@@ -33,23 +33,26 @@
 
                 <div class="result" id="result">...</div>
 
-                <div class="chart" id="chart"></div>
+                <h1>Últimos Sismos en Chile</h1>
+                <div class="grafica">
+                <canvas id="myChart"></canvas>
+                </div>
 
 
     </div>
 
     <script>
-         const apiUrl = "https://mindicador.cl/api";
+        const apiUrl = "https://mindicador.cl/api";
         let tasas = {};
 
-        async function cargarMonedas() {
+        async function getMonedas() {
             try {
                 const response = await fetch(apiUrl);
-                const data = await response.json();
+                const data = await res.json();
                 const monedasValidas = ["dolar", "euro", "uf", "utm", "bitcoin"];
                 const select = document.getElementById("fx");
                 
-                monedasValidas.forEach(moneda => {
+                monedasExtranjeras.forEach(moneda => {
                     if (data[moneda]) {
                         tasas[moneda] = data[moneda].valor;
                         let option = document.createElement("option");
@@ -79,7 +82,7 @@
         }
 
         document.getElementById("btn-search").addEventListener("click", convertir);
-        window.onload = cargarMonedas;
+        window.onload = getMonedas;
         
     </script>
 

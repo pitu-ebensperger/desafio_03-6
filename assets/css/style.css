@@ -2,7 +2,7 @@
     --font-sans: 'Poppins', Helvetica, Arial, sans-serif;
     --font-serif: 'DM Serif Text', serif;
     --color-bg-main: #e9e9e9;
-    --color-accent1: rgb(1, 82, 72);
+    --color-accent1: #20474a;
     --color-accent2: #243038;
     --color-accent3: #e6e6ff;
     --color-accent4: rgb(135, 181, 181);
@@ -137,6 +137,7 @@
             border: none;
             margin-bottom: 15px;
             text-align: center;
+            color: var(--color-accent5);
             }
         ::placeholder {
             color: var(--color-accent5);
@@ -174,21 +175,23 @@
             }
             .btn-search:hover{
                 color: var(--color-light);
-                background-color: rgb(152, 203, 197, 0.3);
+                background-color: rgb(135, 181, 181, 0.5);
                 cursor: pointer;
                 box-shadow: var(--box-shadow);
                 }
 
             .btn-search:active, .btn-search:focus{
-                color: var(--color-accent1);
-                background-color: var(--color-accent3);
+                
                 font-weight: 700;
+                color: var(--color-light);
+                background-color: var(--color-accent1);
                 }
         
           .result{
             font-family: var(--font-serif);
-            font-size: 20px;
+            font-size: 38px;
             color: var(--color-light);
             text-align: center;
             width: 100%;
+            margin-bottom: 30px;
           }
